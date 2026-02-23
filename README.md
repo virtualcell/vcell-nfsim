@@ -9,5 +9,5 @@ $ cmake --build . --target NFsim
 ## Run smoke tests
 ```shell
 $ cd tests/smoke
-$ ./smoke.sh ../../bin/NFsim
+$ ./smoke.sh ../../build/bin/NFsim
  ```
