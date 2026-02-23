@@ -39,3 +39,29 @@
 
 # debug information files
 *.dwo
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+CMakeLists.txt.user
+cmake_install.cmake
+CTestTestfile.cmake
+Makefile
+makefile
+build.ninja
+compile_commands.json
+.cmake/
+.ninja_deps
+.ninja_log
+Testing/
+bin/
+lib/
+cmake-build-*/
+
+# Project specific generated files
+nfsim_standalone_main.cpp
+
+# IDE files
+.idea/
+.vscode/
+.DS_Store
