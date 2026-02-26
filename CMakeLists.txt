@@ -102,6 +102,16 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/smoke/smoke.py)
     add_test(NAME NFsim_smoke_python COMMAND ${python_cmd} ${test_dir}/smoke.py ${CMAKE_BINARY_DIR}/bin/NFsim WORKING_DIRECTORY ${test_dir})
 endif()
 
+# Architecture flags for macOS symlink
+if (APPLE)
+    # Create symbolic link from the built NFsim executable to NFsim_i386_darwin in the bin directory
+    add_custom_command(TARGET NFsim POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE_NAME:NFsim> NFsim_i386_darwin
+        WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+        COMMENT "Creating symbolic link to NFsim_i386_darwin"
+    )
+endif()
+
 # -----------------------------------------------------------------------------
 # Model tests (generated from models/* READMEs)
 # Each test runs BioNetGen (BNG2.pl in repo root) to generate XML, then runs NFsim.
