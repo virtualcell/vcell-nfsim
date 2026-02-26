@@ -6,8 +6,8 @@ $ mkdir build && cd build
 $ cmake ..
 $ cmake --build . --target NFsim
 ``` 
-## Run smoke tests
+## Run tests
+Starts with a smoke test, then runs each of the models in the models directory
 ```shell
-$ cd tests/smoke
-$ ./smoke.sh ../../build/bin/NFsim
+$ ctest --ouptut-on-failure
  ```

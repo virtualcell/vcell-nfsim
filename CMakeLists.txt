@@ -102,4 +102,66 @@ if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/smoke/smoke.py)
     add_test(NAME NFsim_smoke_python COMMAND ${python_cmd} ${test_dir}/smoke.py ${CMAKE_BINARY_DIR}/bin/NFsim WORKING_DIRECTORY ${test_dir})
 endif()
 
+# -----------------------------------------------------------------------------
+# Model tests (generated from models/* READMEs)
+# Each test runs BioNetGen (BNG2.pl in repo root) to generate XML, then runs NFsim.
+# We set the working directory to each model's folder so relative paths in RNF files work.
+# -----------------------------------------------------------------------------
+enable_testing()
+
+# Paths to tools
+set(BNG2_PL ${CMAKE_SOURCE_DIR}/BNG2.pl)
+set(NFSIM_EXE $<TARGET_FILE:NFsim>)
+
+# Helper macro to create a test that first generates XML then runs NFsim
+# Usage: add_nfsim_model_test(TestName ModelDir BnglFile [RNF|XML] ArgFile [ExtraArgs...])
+macro(add_nfsim_model_test TEST_NAME MODEL_DIR BNGL_FILE MODE ARG_FILE)
+    # Compose a single shell command to ensure XML generation precedes NFsim run within one test
+    if("${MODE}" STREQUAL "RNF")
+        add_test(
+            NAME ${TEST_NAME}
+            COMMAND ${CMAKE_COMMAND} -E env bash -lc "perl \"${BNG2_PL}\" \"${BNGL_FILE}\" && \"${NFSIM_EXE}\" -rnf \"${ARG_FILE}\""
+        )
+    else()
+        # MODE == XML: run NFsim directly on the generated XML
+        add_test(
+            NAME ${TEST_NAME}
+            COMMAND ${CMAKE_COMMAND} -E env bash -lc "perl \"${BNG2_PL}\" \"${BNGL_FILE}\" && \"${NFSIM_EXE}\" -xml \"${ARG_FILE}\""
+        )
+    endif()
+    set_tests_properties(${TEST_NAME} PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/${MODEL_DIR})
+endmacro()
+
+# actin: use actin_simple + RNF
+add_nfsim_model_test(Model_actin_simple models/actin actin_simple.bngl RNF run_actin_simple.rnf)
+
+# tlbr: use tlbr.bngl + tlbr.rnf
+add_nfsim_model_test(Model_tlbr models/tlbr tlbr.bngl RNF tlbr.rnf)
+
+# chemotaxisAdaptation: AN.bngl + run_AN.rnf
+add_nfsim_model_test(Model_chemotaxis_AN models/chemotaxisAdaptation AN.bngl RNF run_AN.rnf)
+
+# multisite_phos: e1.bngl then run via -xml e1.xml
+add_nfsim_model_test(Model_multisite_e1 models/multisite_phos e1.bngl XML e1.xml)
+
+# flagellar_motor: motor.bngl run via -xml motor.xml
+add_nfsim_model_test(Model_flagellar_motor models/flagellar_motor motor.bngl XML motor.xml)
+
+# oscillatory_system: oscSystem.bngl -> oscSystem.xml
+add_nfsim_model_test(Model_oscillatory_system models/oscillatory_system oscSystem.bngl XML oscSystem.xml)
+
+# simple_PushPull: PushPull.bngl -> PushPull.xml
+add_nfsim_model_test(Model_simple_PushPull models/simple_PushPull PushPull.bngl XML PushPull.xml)
+
+# fceRI_compendium: choose a representative small model (fceri_fyn.bngl)
+add_nfsim_model_test(Model_fceRI_fyn models/fceRI_compendium fceri_fyn.bngl XML fceri_fyn.xml)
+
+# performance_test_models: push_pull example with modest steps to limit runtime
+# Note: Keeping README defaults (100 steps/seconds). Adjust if CI timeouts occur.
+add_test(
+    NAME Model_performance_egfr
+    COMMAND ${CMAKE_COMMAND} -E env bash -lc "perl \"${BNG2_PL}\" egfr_net.bngl && \"${NFSIM_EXE}\" -xml egfr_net.xml -oSteps 100 -sim 100 -notf -utl 2"
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/models/performance_test_models
+)
+
 
