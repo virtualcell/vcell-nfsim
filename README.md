@@ -3,9 +3,9 @@
 ## Build
 On Linux/macOS:
 ``` shell
-$ mkdir build && cd build
-$ cmake ..
-$ cmake --build . --target NFsim
+$ cmake -S . -B build -DNFSIM_ENABLE_MODEL_TESTS=ON
+$ cmake --build build --config Release
+$ ctest --test-dir build -C Release --output-on-failure
 ``` 
 
 On Windows:
@@ -15,12 +15,7 @@ On Windows:
 > ctest --test-dir build -C Release --output-on-failure
 ```
 
-On Linux/macOS:
-```shell
-$ ctest --output-on-failure
-```
-
-On Windows (using multi-config generators like Visual Studio):
+On Linux/macOS/Windows:
 ```shell
 > ctest -C Release --output-on-failure
 ```
