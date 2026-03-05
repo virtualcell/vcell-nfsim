@@ -12,23 +12,47 @@ it is necessary to check they are correct.
 ====================================================================*/
 
 /* Check whether various headers are available */
+#ifndef HAVE_UNISTD_H
 #define HAVE_UNISTD_H  1    /* <unistd.h> */
-#define HAVE_SYSTYPES_H  1    /* <sys/types.h> */
+#endif
+#ifndef HAVE_SYS_TYPES_H
+#define HAVE_SYS_TYPES_H  1    /* <sys/types.h> */
+#endif
+#ifndef HAVE_STDDEF_H
 #define HAVE_STDDEF_H  1     /* <stddef.h> */
+#endif
+#ifndef HAVE_STDLIB_H
 #define HAVE_STDLIB_H  1    /* <stdlib.h> */
+#endif
+#ifndef HAVE_STRING_H
 #define HAVE_STRING_H  1    /* <string.h> */
+#endif
+#ifndef MALLOC_DEC
 #define MALLOC_DEC 1  /* 1 = malloc() is declared in stdlib.h,
 				 2 = in malloc.h, 0 = in neither place */
+#endif
+#ifndef HAS_MATH_INF
 #define HAS_MATH_INF 1 /* INFINITY is defined in math.h or
 				some system header likely to be used */
+#endif
+#ifndef HAS_STDIO_UNLOCK
 #define HAS_STDIO_UNLOCK 1  /* Whether there are getc_unlocked,
 		putc_unlocked,flockfile and funlockfile*/
+#endif
 
+#ifndef SIZEOF_INT
 #define SIZEOF_INT 4
+#endif
+#ifndef SIZEOF_LONG
 #define SIZEOF_LONG 4
+#endif
+#ifndef SIZEOF_LONG_LONG
 #define SIZEOF_LONG_LONG 8   /* 0 if nonexistent */
+#endif
 
+#ifndef HAVE_CONST
 #define HAVE_CONST 1    /* compiler properly supports const */
+#endif
 
 /*==================================================================*/
 

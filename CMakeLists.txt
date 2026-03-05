@@ -94,12 +94,37 @@ foreach(DIR ${SUB_DIRS})
     target_include_directories(NFsim_lib PUBLIC ${DIR})
 endforeach()
 
+# --- Windows compatibility for BioNetGen ---
+# BioNetGen's findExec() looks in the repo's top-level "bin/" directory and,
+# on Windows, tries "NFsim_MSWin32.exe". Copy our built NFsim there after build.
+if(WIN32)
+    add_custom_command(TARGET NFsim POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/bin"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "$<TARGET_FILE:NFsim>"
+            "${CMAKE_SOURCE_DIR}/bin/NFsim_MSWin32.exe"
+            COMMENT "Copying NFsim to repo bin/ as NFsim_MSWin32.exe for BioNetGen"
+    )
+endif()
+
 # Optional: Add smoke tests if they exist
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/smoke/smoke.py)
     enable_testing()
     set(python_cmd python3)
     set(test_dir ${CMAKE_CURRENT_SOURCE_DIR}/tests/smoke)
-    add_test(NAME NFsim_smoke_python COMMAND ${python_cmd} ${test_dir}/smoke.py ${CMAKE_BINARY_DIR}/bin/NFsim WORKING_DIRECTORY ${test_dir})
+
+    # Use the actual built executable path. On Windows this includes the .exe suffix.
+    if(WIN32)
+        set(_nfsim_smoke_exe $<TARGET_FILE:NFsim>)
+    else()
+        set(_nfsim_smoke_exe ${CMAKE_BINARY_DIR}/bin/NFsim)
+    endif()
+
+    add_test(
+            NAME NFsim_smoke_python
+            COMMAND ${python_cmd} ${test_dir}/smoke.py "${_nfsim_smoke_exe}"
+            WORKING_DIRECTORY ${test_dir}
+    )
 endif()
 
 # Architecture flags for macOS symlink
@@ -121,34 +146,56 @@ enable_testing()
 
 # Paths to tools
 set(BNG2_PL ${CMAKE_SOURCE_DIR}/BNG2.pl)
-set(NFSIM_EXE $<TARGET_FILE:NFsim>)
+# NFsim executable for tests:
+# - Windows: always use the real built target path (includes .exe, config folder)
+# - Others: keep the previous bin/NFsim layout
+if(WIN32)
+    set(NFSIM_EXE $<TARGET_FILE:NFsim>)
+else()
+    set(NFSIM_EXE ${CMAKE_BINARY_DIR}/bin/NFsim)
+endif()
+
+# Use a deterministic Perl (avoid accidentally picking up Cygwin via PATH)
+find_package(Perl REQUIRED)
+message(STATUS "Using Perl: ${PERL_EXECUTABLE}")
+
+if(WIN32)
+    string(TOLOWER "${PERL_EXECUTABLE}" _perl_exe_lc)
+    if(_perl_exe_lc MATCHES "cygwin" OR _perl_exe_lc MATCHES "cygdrive")
+        message(FATAL_ERROR
+                "Cygwin Perl detected (${PERL_EXECUTABLE}). "
+                "Please put Strawberry Perl earlier in PATH or set PERL_EXECUTABLE explicitly "
+                "(e.g., -DPERL_EXECUTABLE=C:/Strawberry/perl/bin/perl.exe), then reconfigure from a clean build directory.")
+    endif()
+endif()
 
 # Helper macro to create a test that first generates XML then runs NFsim
 # Usage: add_nfsim_model_test(TestName ModelDir BnglFile [RNF|XML] ArgFile [ExtraArgs...])
 macro(add_nfsim_model_test TEST_NAME MODEL_DIR BNGL_FILE MODE ARG_FILE)
     if("${MODE}" STREQUAL "RNF")
         add_test(
-            NAME ${TEST_NAME}
-            COMMAND ${CMAKE_COMMAND} -E env perl "${BNG2_PL}" "${BNGL_FILE}"
+                NAME ${TEST_NAME}
+                COMMAND "${PERL_EXECUTABLE}" "${BNG2_PL}" "${BNGL_FILE}"
         )
         add_test(
-            NAME ${TEST_NAME}_run
-            COMMAND "${NFSIM_EXE}" -rnf "${ARG_FILE}"
+                NAME ${TEST_NAME}_run
+                COMMAND "${NFSIM_EXE}" -rnf "${ARG_FILE}"
         )
     else()
         # MODE == XML: run NFsim directly on the generated XML
         add_test(
-            NAME ${TEST_NAME}
-            COMMAND ${CMAKE_COMMAND} -E env perl "${BNG2_PL}" "${BNGL_FILE}"
+                NAME ${TEST_NAME}
+                COMMAND "${PERL_EXECUTABLE}" "${BNG2_PL}" "${BNGL_FILE}"
         )
         add_test(
-            NAME ${TEST_NAME}_run
-            COMMAND "${NFSIM_EXE}" -xml "${ARG_FILE}"
+                NAME ${TEST_NAME}_run
+                COMMAND "${NFSIM_EXE}" -xml "${ARG_FILE}"
         )
     endif()
     set_tests_properties(${TEST_NAME} ${TEST_NAME}_run PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/${MODEL_DIR})
     set_tests_properties(${TEST_NAME}_run PROPERTIES DEPENDS ${TEST_NAME})
 endmacro()
+
 
 # actin: use actin_simple + RNF
 add_nfsim_model_test(Model_actin_simple models/actin actin_simple.bngl RNF run_actin_simple.rnf)
@@ -177,14 +224,12 @@ add_nfsim_model_test(Model_fceRI_fyn models/fceRI_compendium fceri_fyn.bngl XML 
 # performance_test_models: push_pull example with modest steps to limit runtime
 # Note: Keeping README defaults (100 steps/seconds). Adjust if CI timeouts occur.
 add_test(
-    NAME Model_performance_egfr_gen
-    COMMAND ${CMAKE_COMMAND} -E env perl "${BNG2_PL}" egfr_net.bngl
+        NAME Model_performance_egfr_gen
+        COMMAND ${CMAKE_COMMAND} -E env "${PERL_EXECUTABLE}" "${BNG2_PL}" egfr_net.bngl
 )
 add_test(
-    NAME Model_performance_egfr
-    COMMAND "${NFSIM_EXE}" -xml egfr_net.xml -oSteps 100 -sim 100 -notf -utl 2
+        NAME Model_performance_egfr
+        COMMAND "${NFSIM_EXE}" -xml egfr_net.xml -oSteps 100 -sim 100 -notf -utl 2
 )
 set_tests_properties(Model_performance_egfr_gen Model_performance_egfr PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/models/performance_test_models)
 set_tests_properties(Model_performance_egfr PROPERTIES DEPENDS Model_performance_egfr_gen)
-
-
