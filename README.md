@@ -17,6 +17,6 @@ On Windows:
 
 On Linux/macOS/Windows:
 ```shell
-> ctest -C Release --output-on-failure
+> ctest --test-dir build -C Release --output-on-failure
 ```
 Note: `-C <config>` is required for multi-config generators to specify which build configuration to test.
