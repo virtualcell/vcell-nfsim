@@ -3,21 +3,20 @@
 ## Build
 On Linux/macOS:
 ``` shell
-$ cmake -S . -B build -DNFSIM_ENABLE_MODEL_TESTS=ON
+$ cmake -S . -B build
 $ cmake --build build --config Release
-$ ctest --test-dir build -C Release --output-on-failure
 ``` 
 
 On Windows:
 ``` shell
-> cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DNFSIM_ENABLE_MODEL_TESTS=ON
+> cmake -S . -B build -G "Visual Studio 17 2022" -A x64
 > cmake --build build --config Release
-> ctest --test-dir build -C Release --output-on-failure
 ```
 
+## Test
 On Linux/macOS/Windows:
 ```shell
-> ctest --test-dir build -C Release --output-on-failure
+$> ctest --test-dir build -C Release --output-on-failure
 ```
 Note: `-C <config>` is required for multi-config generators to specify which build configuration to test.
 
@@ -28,7 +27,12 @@ $ cmake --build build --target clean
 ```
 
 To completely remove the build directory:
+On Linux:
 ```shell
 $ rm -rf build
 ```
-(On Windows, use `rmdir /s /q build` in Command Prompt or `Remove-Item -Recurse -Force build` in PowerShell).
+On Windows:
+```shell
+cmd> rmdir /s /q build
+ps1> Remove-Item -Recurse -Force build
+```

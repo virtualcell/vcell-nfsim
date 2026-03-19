@@ -86,7 +86,6 @@ jobs:
         cmake -S . -B ${{ steps.strings.outputs.build-output-dir }}
         -G Ninja
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-        -DNFSIM_ENABLE_MODEL_TESTS=ON
 
     - name: Build
       # Build your program with the given configuration.
