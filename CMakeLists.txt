@@ -174,22 +174,22 @@ endif()
 macro(add_nfsim_model_test TEST_NAME MODEL_DIR BNGL_FILE MODE ARG_FILE)
     if("${MODE}" STREQUAL "RNF")
         add_test(
-                NAME ${TEST_NAME}
-                COMMAND "${PERL_EXECUTABLE}" "${BNG2_PL}" "${BNGL_FILE}"
+            NAME ${TEST_NAME}
+            COMMAND "${PERL_EXECUTABLE}" "${BNG2_PL}" "${BNGL_FILE}"
         )
         add_test(
-                NAME ${TEST_NAME}_run
-                COMMAND "${NFSIM_EXE}" -rnf "${ARG_FILE}"
+            NAME ${TEST_NAME}_run
+            COMMAND "${NFSIM_EXE}" -rnf "${ARG_FILE}"
         )
     else()
         # MODE == XML: run NFsim directly on the generated XML
         add_test(
-                NAME ${TEST_NAME}
-                COMMAND "${PERL_EXECUTABLE}" "${BNG2_PL}" "${BNGL_FILE}"
+            NAME ${TEST_NAME}
+            COMMAND "${PERL_EXECUTABLE}" "${BNG2_PL}" "${BNGL_FILE}"
         )
         add_test(
-                NAME ${TEST_NAME}_run
-                COMMAND "${NFSIM_EXE}" -xml "${ARG_FILE}"
+            NAME ${TEST_NAME}_run
+            COMMAND "${NFSIM_EXE}" -xml "${ARG_FILE}"
         )
     endif()
     set_tests_properties(${TEST_NAME} ${TEST_NAME}_run PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/${MODEL_DIR})
@@ -224,12 +224,12 @@ add_nfsim_model_test(Model_fceRI_fyn models/fceRI_compendium fceri_fyn.bngl XML 
 # performance_test_models: push_pull example with modest steps to limit runtime
 # Note: Keeping README defaults (100 steps/seconds). Adjust if CI timeouts occur.
 add_test(
-        NAME Model_performance_egfr_gen
-        COMMAND ${CMAKE_COMMAND} -E env "${PERL_EXECUTABLE}" "${BNG2_PL}" egfr_net.bngl
+    NAME Model_performance_egfr_gen
+    COMMAND "${PERL_EXECUTABLE}" "${BNG2_PL}" egfr_net.bngl
 )
 add_test(
-        NAME Model_performance_egfr
-        COMMAND "${NFSIM_EXE}" -xml egfr_net.xml -oSteps 100 -sim 100 -notf -utl 2
+    NAME Model_performance_egfr
+    COMMAND "${NFSIM_EXE}" -xml egfr_net.xml -oSteps 100 -sim 100 -notf -utl 2
 )
 set_tests_properties(Model_performance_egfr_gen Model_performance_egfr PROPERTIES WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/models/performance_test_models)
 set_tests_properties(Model_performance_egfr PROPERTIES DEPENDS Model_performance_egfr_gen)
