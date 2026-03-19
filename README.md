@@ -20,3 +20,15 @@ On Linux/macOS/Windows:
 > ctest --test-dir build -C Release --output-on-failure
 ```
 Note: `-C <config>` is required for multi-config generators to specify which build configuration to test.
+
+## Clean
+To remove build artifacts:
+```shell
+$ cmake --build build --target clean
+```
+
+To completely remove the build directory:
+```shell
+$ rm -rf build
+```
+(On Windows, use `rmdir /s /q build` in Command Prompt or `Remove-Item -Recurse -Force build` in PowerShell).
