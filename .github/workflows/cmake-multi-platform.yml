@@ -92,6 +92,28 @@ jobs:
       # Build your program with the given configuration.
       run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
 
+    - name: Create symbolic links in repo bin/ (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        mkdir -p bin
+        ln -sf ${{ steps.strings.outputs.build-output-dir }}/bin/NFsim bin/NFsim
+        ln -sf ${{ steps.strings.outputs.build-output-dir }}/bin/NFsim bin/NFsim_x86_64-linux
+
+    - name: Create symbolic links in repo bin/ (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        mkdir -p bin
+        ln -sf ${{ steps.strings.outputs.build-output-dir }}/bin/NFsim bin/NFsim
+        ln -sf ${{ steps.strings.outputs.build-output-dir }}/bin/NFsim bin/NFsim_arm64-darwin
+        ln -sf ${{ steps.strings.outputs.build-output-dir }}/bin/NFsim bin/NFsim_x86_64-darwin
+
+    - name: Create repository bin/ (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        mkdir bin
+        copy ${{ steps.strings.outputs.build-output-dir }}\bin\NFsim.exe bin\NFsim.exe
+        copy ${{ steps.strings.outputs.build-output-dir }}\bin\NFsim.exe bin\NFsim_MSWin32.exe
+
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       # Execute tests defined by the CMake configuration.
