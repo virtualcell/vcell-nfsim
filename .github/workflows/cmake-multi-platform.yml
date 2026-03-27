@@ -113,8 +113,24 @@ jobs:
         cmake -E copy ${{ steps.strings.outputs.build-output-dir }}/bin/NFsim.exe bin/NFsim.exe
         cmake -E copy ${{ steps.strings.outputs.build-output-dir }}/bin/NFsim.exe bin/NFsim_MSWin32.exe
 
-    - name: Test
+    - name: Test C++
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
       # Execute tests defined by the CMake configuration.
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest --test-dir ${{ steps.strings.outputs.build-output-dir }} -C ${{ matrix.build_type }} --output-on-failure
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest
+
+    - name: Build Python package
+      run: pip install -e .
+
+    - name: Test Python
+      run: pytest tests/test_pyvcell_nfsim.py -v
