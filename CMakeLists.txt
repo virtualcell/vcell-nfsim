@@ -64,6 +64,9 @@ foreach(DIR ${SUB_DIRS})
     list(APPEND LIB_SRC_FILES ${FILES})
 endforeach()
 
+# Exclude Python binding file from the library (it's only for the Python module)
+list(FILTER LIB_SRC_FILES EXCLUDE REGEX ".*pyvcell-nfsim-main\\.cpp$")
+
 # Add a simple main if NFsim.cpp doesn't have one
 set(MAIN_SRC ${CMAKE_BINARY_DIR}/nfsim_standalone_main.cpp)
 file(WRITE ${MAIN_SRC} "
@@ -84,6 +87,9 @@ endif()
 
 # Define the library
 add_library(NFsim_lib STATIC ${LIB_SRC_FILES})
+
+# Enable position independent code for the library (required for Python binding)
+set_target_properties(NFsim_lib PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # Define the executable
 add_executable(NFsim ${MAIN_SRC})
@@ -135,6 +141,28 @@ if (APPLE)
         WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
         COMMENT "Creating symbolic link to NFsim_i386_darwin"
     )
+endif()
+
+# -----------------------------------------------------------------------------
+# Python bindings (optional, enabled when called via scikit-build-core)
+# -----------------------------------------------------------------------------
+if(SKBUILD)
+    # Find pybind11
+    find_package(pybind11 CONFIG REQUIRED)
+
+    # Create Python module
+    pybind11_add_module(_core src/pyvcell-nfsim-main.cpp)
+
+    # Link against NFsim library
+    target_link_libraries(_core PRIVATE NFsim_lib)
+
+    # Include directories
+    foreach(DIR ${SUB_DIRS})
+        target_include_directories(_core PRIVATE ${DIR})
+    endforeach()
+
+    # Install the module
+    install(TARGETS _core DESTINATION pyvcell_nfsim)
 endif()
 
 # -----------------------------------------------------------------------------
