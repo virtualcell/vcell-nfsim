@@ -79,11 +79,11 @@ jobs:
       - name: Display artifacts
         run: ls -R dist
 
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          skip-existing: true
-          verbose: true
+#      - name: Publish to PyPI
+#        uses: pypa/gh-action-pypi-publish@release/v1
+#        with:
+#          skip-existing: true
+#          verbose: true
 
       - name: Create GitHub Release
         if: github.event.inputs.version != ''
