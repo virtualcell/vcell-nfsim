@@ -36,7 +36,8 @@ sleep 1
 
 echo "--- help"
 "$@" --help
-"$@" | grep -q NFsim_x64
+help=$("$@")   # no argument: the same help (captured, not piped: grep -q would close the pipe early)
+grep -q NFsim_x64 <<< "${help}"
 set +e
 "$@" not-a-solver > /dev/null 2>&1
 rc=$?
