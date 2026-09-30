@@ -55,6 +55,9 @@ SimulationMessaging::SimulationMessaging(){
 #ifdef USE_MESSAGING
 SimulationMessaging::SimulationMessaging(const char* broker, const char* smqusername, const char* passwd, const char*qname,
 		const char* tname, const char* vcusername, int simKey, int jobIndex, int taskID, int ttl_low, int ttl_high){
+	// (was left uninitialized here: a garbage "true" made the solver exit without waiting for the
+	// messaging thread, so JOB_COMPLETED was sometimes never sent)
+	bStopRequested = false;
 	m_broker = const_cast<char *>(broker);
 	m_smqusername = const_cast<char *>( smqusername );
 	m_password =  const_cast<char *>(passwd );
@@ -424,6 +427,7 @@ bool SimulationMessaging::lockMessaging()
         cout << "Cannot acquire mutex, fatal error." << endl;
         exit(1);
     }
+    return true;
 #endif
 }
 

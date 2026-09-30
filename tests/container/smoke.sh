@@ -19,13 +19,14 @@ here=$(cd "$(dirname "$0")" && pwd)
 ref="${here}/../smoke"
 sim=SimID_273069657_0_
 port=${BROKER_PORT:-18165}
+broker_host=${BROKER_HOST:-127.0.0.1}   # as the solver sees the host
 
 mkdir -p "${work}"
 chmod 0777 "${work}"   # the image runs as an arbitrary uid
 rm -f "${work}/${sim}.gdat" "${work}/${sim}.species" "${work}/broker.log"
 
 # The reference input, with its <jms> broker pointed at the fake broker.
-sed -E "s#<broker>[^<]*</broker>#<broker>127.0.0.1:${port}</broker>#" \
+sed -E "s#<broker>[^<]*</broker>#<broker>${broker_host}:${port}</broker>#" \
     "${ref}/${sim}.nfsimInput" > "${work}/${sim}.nfsimInput"
 
 python3 "${here}/fake_broker.py" "${port}" "${work}/broker.log" &
