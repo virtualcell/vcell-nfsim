@@ -123,6 +123,10 @@ if (OPTION_VCELL_EXECUTABLE AND NOT SKBUILD)
     target_include_directories(vcell_nfsim_support PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/VCell/messaging/include
         ${CMAKE_CURRENT_SOURCE_DIR}/VCell/vcommons/include)
+    if (WIN32)
+        # windows.h (via SimulationMessaging.h) must not define min/max macros
+        target_compile_definitions(vcell_nfsim_support PUBLIC NOMINMAX)
+    endif()
     if (OPTION_VCELL_MESSAGING)
         find_package(CURL REQUIRED)
         find_package(Threads REQUIRED)

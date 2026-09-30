@@ -288,7 +288,7 @@ jobs:
           codesign --verify --verbose "$pkg/NFsim_x64"
           lipo "$pkg/NFsim_x64" -verify_arch arm64 x86_64
           otool -L "$pkg/NFsim_x64"
-          if otool -L "$pkg/NFsim_x64" | tail -n +2 | grep -vE '^\s*(/usr/lib/|/System/|@rpath/|@loader_path/|@executable_path/)'; then
+          if otool -L "$pkg/NFsim_x64" | grep -E '^[[:space:]]' | grep -vE '^\s*(/usr/lib/|/System/|@rpath/|@loader_path/|@executable_path/)'; then
             echo "::error::NFsim_x64 links a library outside the system / its own directory"; exit 1
           fi
           cp LICENSE "$pkg/LICENSE"; cp LICENSE.txt "$pkg/LICENSE-GPL-3.0.txt"
