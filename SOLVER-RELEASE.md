@@ -12,7 +12,7 @@ A tag `vX.Y.Z` on `main` (it must equal `version` in `pyproject.toml`) creates t
 | `linux64.tgz` | x86_64 `NFsim_x64`, built on manylinux_2_28 (needs glibc ≥ 2.28, GLIBCXX ≥ 3.4.25) |
 | `linux64arm.tgz` | the same for aarch64 |
 | `mac64.tgz` | universal (arm64 + x86_64) `NFsim_x64`, macOS ≥ 10.15 (arm64 ≥ 11), ad-hoc signed |
-| `win64.zip` | `NFsim_x64.exe`, MSVC with the static runtime (no DLLs beyond Windows' own) |
+| `win64.zip` | `NFsim_x64.exe`, MinGW-w64 gcc linked fully static (no DLLs beyond Windows' own) |
 | `pyvcell_nfsim-X.Y.Z-*.whl`, `pyvcell_nfsim-X.Y.Z.tar.gz` | the Python package (unchanged) |
 | `SHA256SUMS` | `sha256sum` of every asset above |
 
