@@ -376,6 +376,20 @@ jobs:
           grep -q '\[\[\[progress:100%\]\]\]' "$work/stdout.txt"
           diff --strip-trailing-cr "$work/$sim.gdat" "$ref/$sim.gdat.expected"
           diff --strip-trailing-cr "$work/$sim.species" "$ref/$sim.species.expected"
+      # VCell's desktop still ships the older v0.0.40 Windows binaries; record the comparison.
+      - name: Equivalence with the legacy vcell-solvers v0.0.40 NFsim_x64.exe
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p "$RUNNER_TEMP/legacy"
+          curl -fsSL --retry 5 https://github.com/virtualcell/vcell-solvers/releases/download/v0.0.40/win64.zip -o "$RUNNER_TEMP/legacy.zip"
+          7z x -o"$RUNNER_TEMP/legacy" "$RUNNER_TEMP/legacy.zip" > /dev/null
+          tests/equivalence/compare_legacy.sh "$RUNNER_TEMP/legacy/NFsim_x64.exe" "$RUNNER_TEMP/win64/NFsim_x64.exe" \
+            "$RUNNER_TEMP/equivalence" | tee "$RUNNER_TEMP/equivalence-win64.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: equivalence-win64
+          path: ${{ runner.temp }}/equivalence-win64.txt
       - uses: actions/upload-artifact@v4
         with:
           name: archive-win
