@@ -1,6 +1,9 @@
 name: Build and Publish Python Package
 
 on:
+  # Called by release.yml on a vX.Y.Z tag: build the wheels + sdist as artifacts, which release.yml
+  # attaches to the GitHub release together with the executable archives.
+  workflow_call:
   workflow_dispatch:
     inputs:
       version:
