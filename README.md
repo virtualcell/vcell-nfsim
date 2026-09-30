@@ -2,6 +2,16 @@
 
 This project provides both a standalone NFsim C++ executable and Python bindings (`pyvcell_nfsim`).
 
+## VCell solver release
+
+Each `vX.Y.Z` release also carries the executable VCell runs, `NFsim_x64`, as `linux64.tgz`,
+`linux64arm.tgz`, `mac64.tgz` (universal) and `win64.zip` with `SHA256SUMS`, and the solver image
+`ghcr.io/virtualcell/vcell-nfsim:X.Y.Z` with its Apptainer SIF
+`oras://ghcr.io/virtualcell/vcell-nfsim_singularity:X.Y.Z` (VCell messaging on, `-tid <n>`).
+See [SOLVER-RELEASE.md](SOLVER-RELEASE.md) for the layout, the container entry point, the checks and
+how to cut a release. To build `NFsim_x64` locally: `cmake --build build --target NFsim_x64`
+(add `-DOPTION_VCELL_MESSAGING=ON` at configure time for broker messaging; needs libcurl).
+
 ## Building the C++ Executable
 
 ### Linux/macOS

@@ -15,16 +15,14 @@ enable_language(C)
 
 # Architecture flags
 if (APPLE)
-    execute_process(COMMAND uname -m OUTPUT_VARIABLE PROCESSOR_ARCHITECTURE OUTPUT_STRIP_TRAILING_WHITESPACE)
-    if (PROCESSOR_ARCHITECTURE STREQUAL "arm64")
-        add_definitions(-D__arm64__)
-        set(CMAKE_OSX_ARCHITECTURES "arm64")
-    else()
-        add_definitions(-D__x86_64__)
-        set(CMAKE_OSX_ARCHITECTURES "x86_64")
+    # Build for the host architecture unless the caller asked for something else
+    # (the release build passes -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" for a universal binary).
+    if (NOT CMAKE_OSX_ARCHITECTURES)
+        execute_process(COMMAND uname -m OUTPUT_VARIABLE PROCESSOR_ARCHITECTURE OUTPUT_STRIP_TRAILING_WHITESPACE)
+        set(CMAKE_OSX_ARCHITECTURES "${PROCESSOR_ARCHITECTURE}")
     endif()
-elseif (UNIX)
-    # Default to 64-bit on Linux/Unix
+elseif (UNIX AND CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64|amd64")
+    # Default to 64-bit on x86 Linux/Unix (-m64 is not an aarch64 option)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64")
 endif()
@@ -99,6 +97,46 @@ target_link_libraries(NFsim PRIVATE NFsim_lib)
 foreach(DIR ${SUB_DIRS})
     target_include_directories(NFsim_lib PUBLIC ${DIR})
 endforeach()
+
+# -----------------------------------------------------------------------------
+# NFsim_x64 — the executable VCell runs (desktop and HPC), see SOLVER-RELEASE.md.
+# It is NFsim with VCell's main (VCell/src/VCellNFSim.cpp): progress markers on stdout
+# ([[[progress:..%]]]) and, when built with OPTION_VCELL_MESSAGING=ON, status messages
+# to VCell's broker when a trailing "-tid <n>" is given (the broker is read from the
+# <jms> element of the -xml input). Messaging needs libcurl (HTTP only).
+# -----------------------------------------------------------------------------
+option(OPTION_VCELL_EXECUTABLE "Build NFsim_x64, the VCell-facing executable" ON)
+option(OPTION_VCELL_MESSAGING "NFsim_x64 reports status to VCell's broker with -tid (requires libcurl)" OFF)
+if (OPTION_VCELL_EXECUTABLE AND NOT SKBUILD)
+    if (NOT DEFINED VCELL_NFSIM_VERSION OR VCELL_NFSIM_VERSION STREQUAL "")
+        set(VCELL_NFSIM_VERSION "unknown")
+    endif()
+    set(GIT_DESCRIBE "${VCELL_NFSIM_VERSION}")
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/VCell/messaging/src/GitDescribe.cpp.in
+                   ${CMAKE_CURRENT_BINARY_DIR}/GitDescribe.cpp @ONLY)
+
+    add_library(vcell_nfsim_support STATIC
+        VCell/messaging/src/SimulationMessaging.cpp
+        ${CMAKE_CURRENT_BINARY_DIR}/GitDescribe.cpp
+        VCell/vcommons/src/tinyxml2.cpp
+        VCell/vcommons/src/vcellxml.cpp)
+    target_include_directories(vcell_nfsim_support PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/VCell/messaging/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/VCell/vcommons/include)
+    if (WIN32)
+        # windows.h (via SimulationMessaging.h) must not define min/max macros
+        target_compile_definitions(vcell_nfsim_support PUBLIC NOMINMAX)
+    endif()
+    if (OPTION_VCELL_MESSAGING)
+        find_package(CURL REQUIRED)
+        find_package(Threads REQUIRED)
+        target_compile_definitions(vcell_nfsim_support PUBLIC USE_MESSAGING=1)
+        target_link_libraries(vcell_nfsim_support PUBLIC CURL::libcurl Threads::Threads)
+    endif()
+
+    add_executable(NFsim_x64 VCell/src/VCellNFSim.cpp VCell/src/NFMonitor.cpp)
+    target_link_libraries(NFsim_x64 PRIVATE NFsim_lib vcell_nfsim_support)
+endif()
 
 # --- Windows compatibility for BioNetGen ---
 # BioNetGen's findExec() looks in the repo's top-level "bin/" directory and,
