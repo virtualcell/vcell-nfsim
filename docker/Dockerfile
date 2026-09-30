@@ -3,7 +3,7 @@
 # vcell-nfsim solver image — ghcr.io/virtualcell/vcell-nfsim:<X.Y.Z> (and the Apptainer SIF
 # ghcr.io/virtualcell/vcell-nfsim_singularity:<X.Y.Z> built from it). See SOLVER-RELEASE.md.
 #
-#     docker build -f docker/Dockerfile --build-arg VERSION=0.2.0 -t vcell-nfsim .
+#     docker build -f docker/Dockerfile --build-arg VERSION=0.2.1 -t vcell-nfsim .
 #
 # Stage "build" produces exactly the contents of the linux64.tgz / linux64arm.tgz release archive
 # (packaging/build-linux.sh on manylinux_2_28); stage "archive" exports them as that tarball

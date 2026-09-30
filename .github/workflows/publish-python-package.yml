@@ -76,8 +76,15 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist
-          pattern: '*'
+          # wheels-* and sdist only: '*' also matches buildx's .dockerbuild records, which fail to download
+          pattern: wheels-*
           merge-multiple: true
+
+      - name: Download the sdist
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          name: sdist
 
       - name: Display artifacts
         run: ls -R dist
